@@ -1,0 +1,106 @@
+[gd_scene load_steps=6 format=3 uid="uid://bf23c1nngxdlk"]
+
+[ext_resource type="Script" path="res://framer.gd" id="1_7po46"]
+[ext_resource type="Script" path="res://frame_lua_node.gd" id="1_bhigt"]
+[ext_resource type="Script" path="res://global.gd" id="2_206ng"]
+[ext_resource type="Script" path="res://frame_ble_node.gd" id="4_up7e7"]
+
+[sub_resource type="CodeHighlighter" id="CodeHighlighter_fjcgp"]
+number_color = Color(0.788731, 0.411196, 0.552265, 1)
+symbol_color = Color(0.240909, 0.692279, 0.633237, 1)
+function_color = Color(0.445741, 0.552796, 0.938659, 1)
+member_variable_color = Color(0.777082, 0.608464, 0.232947, 1)
+
+[node name="Framer" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7po46")
+
+[node name="Global" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_206ng")
+
+[node name="GraphEdit" type="GraphEdit" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 100.0
+offset_top = -16.0
+offset_right = 100.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FrameLuaNode" type="GraphNode" parent="GraphEdit"]
+layout_mode = 0
+offset_left = 603.0
+offset_top = 54.0
+offset_right = 996.0
+offset_bottom = 407.0
+mouse_filter = 1
+position_offset = Vector2(603, 54)
+resizable = true
+title = "Frame Lua"
+ignore_invalid_connection_type = true
+slot/0/left_enabled = true
+slot/0/left_type = 0
+slot/0/left_color = Color(0.498039, 0.345098, 0.713726, 1)
+slot/0/left_icon = null
+slot/0/right_enabled = true
+slot/0/right_type = 0
+slot/0/right_color = Color(0.620322, 0.430082, 0.888797, 1)
+slot/0/right_icon = null
+slot/0/draw_stylebox = true
+script = ExtResource("1_bhigt")
+
+[node name="CodeEdit" type="CodeEdit" parent="GraphEdit/FrameLuaNode"]
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "local foo = 100
+function foo(a, b)
+	frame.display.text('foo', 1,1)
+end"
+syntax_highlighter = SubResource("CodeHighlighter_fjcgp")
+highlight_all_occurrences = true
+highlight_current_line = true
+
+[node name="FrameBLENode" type="GraphNode" parent="GraphEdit"]
+layout_mode = 0
+offset_left = 188.0
+offset_top = 94.0
+offset_right = 386.0
+offset_bottom = 190.0
+mouse_filter = 1
+position_offset = Vector2(188, 94)
+title = "Frame BLE Connection"
+ignore_invalid_connection_type = true
+slot/0/left_enabled = false
+slot/0/left_type = 0
+slot/0/left_color = Color(1, 1, 1, 1)
+slot/0/left_icon = null
+slot/0/right_enabled = true
+slot/0/right_type = 1
+slot/0/right_color = Color(1, 1, 1, 1)
+slot/0/right_icon = null
+slot/0/draw_stylebox = true
+script = ExtResource("4_up7e7")
+
+[node name="DeviceName" type="TextEdit" parent="GraphEdit/FrameBLENode"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Frame"
+
+[node name="FrameBLEResponseNode" type="GraphNode" parent="GraphEdit"]
+layout_mode = 0
+offset_left = 214.0
+offset_top = 467.0
+offset_right = 357.0
+offset_bottom = 536.0
+mouse_filter = 1
+position_offset = Vector2(214, 467)
+title = "Frame Response"
