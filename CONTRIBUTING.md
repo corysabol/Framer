@@ -4,7 +4,14 @@ We're excited that you're interested in contributing to Framer! This document ou
 
 ## Code of Conduct
 
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). Please read it before contributing.
+DBAD - Don't Be A Dick
+
+- Don't harrass people
+- Don't violate peoples privacy
+- Don't be mean
+- Don't be a immature asshat
+
+Otherwise you won't be able to contribute or participate in this project.
 
 ## How to Contribute
 
