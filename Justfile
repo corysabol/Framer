@@ -7,3 +7,4 @@ build-server:
 build-bindings:
   cd rust
   cargo build -p bindings
+

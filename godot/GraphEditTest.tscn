@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bf23c1nngxdlk"]
+[gd_scene load_steps=7 format=3 uid="uid://bf23c1nngxdlk"]
 
 [ext_resource type="Script" path="res://framer.gd" id="1_7po46"]
 [ext_resource type="Script" path="res://frame_lua_node.gd" id="1_bhigt"]
 [ext_resource type="Script" path="res://global.gd" id="2_206ng"]
 [ext_resource type="Script" path="res://frame_ble_node.gd" id="4_up7e7"]
+
+[sub_resource type="Theme" id="Theme_sykb5"]
 
 [sub_resource type="CodeHighlighter" id="CodeHighlighter_fjcgp"]
 number_color = Color(0.788731, 0.411196, 0.552265, 1)
@@ -29,12 +31,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 100.0
-offset_top = -16.0
-offset_right = 100.0
-offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
+grid_pattern = 1
 
 [node name="FrameLuaNode" type="GraphNode" parent="GraphEdit"]
 layout_mode = 0
@@ -43,6 +42,7 @@ offset_top = 54.0
 offset_right = 996.0
 offset_bottom = 407.0
 mouse_filter = 1
+theme = SubResource("Theme_sykb5")
 position_offset = Vector2(603, 54)
 resizable = true
 title = "Frame Lua"
