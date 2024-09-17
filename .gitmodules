@@ -1,6 +1,6 @@
-[submodule "godot-zig"]
-	path = godot-zig
-	url = https://github.com/godot-zig/godot-zig.git
-[submodule "SimpleBLE"]
-	path = SimpleBLE
+[submodule "frame-server/SimpleBLE"]
+	path = frame-server/SimpleBLE
 	url = https://github.com/OpenBluetoothToolbox/SimpleBLE
+[submodule "godot/godot-zig"]
+	path = godot/godot-zig
+	url = https://github.com/godot-zig/godot-zig.git

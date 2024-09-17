@@ -35,6 +35,14 @@ pub fn build(b: *std.Build) !void {
     run_step.dependOn(&run_cmd.step);
 }
 
+pub fn build_ble_server(b: *std.Build) !void {
+    const exe = b.addExecutatble(.{
+        .name = "frame_server",
+        .root_source_file = .{ .path = "src/main.zig
+    });
+    exe.addIncludePath(.{ .path = "SimpleBLE" })
+}
+
 //const std = @import("std");
 //
 //// Although this function looks imperative, note that its job is to
