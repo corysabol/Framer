@@ -12,8 +12,6 @@ use tokio::sync::mpsc;
 use uuid::Uuid;
 
 // BLE Stuff
-// TODO: figure out how to handle async nature of the btleplug stuff
-// with the GDExt lib
 
 async fn frame_write(
     device: btleplug::platform::Peripheral,

@@ -1,0 +1,165 @@
+use btleplug::api::{
+    Central, CentralEvent, CharPropFlags, Characteristic, Manager as _, Peripheral, ScanFilter,
+};
+use btleplug::platform::Manager;
+use futures::stream::StreamExt;
+use std::str::FromStr;
+use std::time::Duration;
+use uuid::Uuid;
+
+async fn push_lua() -> Result<(), Box<dyn std::error::Error>> {
+    todo!()
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let RX_CHARACTERISTIC_UUID: Uuid =
+        Uuid::from_str("7A230003-5475-A6A4-654C-8431F6AD49C4").expect("Unable to parse RX UUID");
+    let TX_CHARACTERISTIC_UUID: Uuid =
+        Uuid::from_str("7A230002-5475-A6A4-654C-8431F6AD49C4").expect("Unable to parse TX UUID");
+    let SERVICE_UUID: Uuid = Uuid::from_str("7A230001-5475-A6A4-654C-8431F6AD49C4")
+        .expect("Unable to parse SERVICE UUID");
+
+    // Create a manager to interact with the local Bluetooth adapter
+    let manager = Manager::new().await?;
+
+    // Scan for BLE devices
+    let adapters = manager.adapters().await?;
+
+    if adapters.is_empty() {
+        eprintln!("No bluetooth adapters found");
+    }
+
+    // Get the first adapter
+    let adapter = adapters
+        .into_iter()
+        .nth(0)
+        .expect("Unable to find adapters.");
+    adapter.start_scan(ScanFilter::default()).await?;
+
+    // Wait for devices to be discovered
+    tokio::time::sleep(Duration::from_secs(5)).await;
+
+    // instead of waiting we can use adapter.events() to get a stream which will
+    // notify us of new devices so that we could possibly avoid doing async stuff
+    // which might be necessary to drive things from Godot :think:
+
+    // Find the device with the name "My BLE Device"
+    let devices = adapter.peripherals().await?;
+
+    let mut device = None;
+    for d in devices {
+        if d.properties()
+            .await
+            .unwrap()
+            .unwrap()
+            .local_name
+            .iter()
+            .any(|name| name.contains("Frame"))
+        {
+            device = Some(d);
+        }
+    }
+
+    // Connect to the device
+    let device = device.expect("Failed to find a matching device");
+    device.connect().await?;
+
+    /*let mut events = adapter.events().await?;
+    // This should ideally be ran in it's own thread because the receiver blocks
+    while let Some(event) = events.next().await {
+        match event {
+            CentralEvent::DeviceDiscovered(id) => {
+                println!("DeviceDiscovered: {:?}", id);
+            }
+            CentralEvent::DeviceConnected(id) => {
+                println!("DeviceConnected: {:?}", id);
+                // Break out of the event loop and continue on.
+                break;
+            }
+            CentralEvent::DeviceDisconnected(id) => {
+                println!("DeviceDisconnected: {:?}", id);
+            }
+            CentralEvent::ManufacturerDataAdvertisement {
+                id,
+                manufacturer_data,
+            } => {
+                println!(
+                    "ManufacturerDataAdvertisement: {:?}, {:?}",
+                    id, manufacturer_data
+                );
+            }
+            CentralEvent::ServiceDataAdvertisement { id, service_data } => {
+                println!("ServiceDataAdvertisement: {:?}, {:?}", id, service_data);
+            }
+            CentralEvent::ServicesAdvertisement { id, services } => {
+                let services: Vec<String> = services.into_iter().map(|s| s.to_string()).collect();
+                println!("ServicesAdvertisement: {:?}, {:?}", id, services);
+            }
+            _ => {}
+        }
+    }*/
+
+    // Discover the devices services and characteristics
+    device.discover_services().await?;
+
+    // Find the characteristics we want
+    let chars = device.characteristics();
+
+    // Service UUID: 7A230001-5475-A6A4-654C-8431F6AD49C4
+    // RX characteristic UUID: 7A230002-5475-A6A4-654C-8431F6AD49C4
+    // TX characteristic UUID: 7A230003-5475-A6A4-654C-8431F6AD49C4
+
+    let recv = chars
+        .iter()
+        .find(|c| c.uuid == RX_CHARACTERISTIC_UUID)
+        .expect("Could not find RX characteristic");
+    let send = chars
+        .iter()
+        .find(|c| c.uuid == TX_CHARACTERISTIC_UUID)
+        .expect("Could not find TX characteristic");
+
+    // Subscribe to the device
+    for c in device.characteristics() {
+        if c.uuid == RX_CHARACTERISTIC_UUID && c.properties.contains(CharPropFlags::NOTIFY) {
+            println!("Subscribing to characteristic {:?}", c.uuid);
+            println!("{:?} - {:?}", RX_CHARACTERISTIC_UUID, c.uuid);
+            println!("{:?}", c.properties);
+
+            device.subscribe(&c).await?;
+            let mut notification_stream = device.notifications().await?.take(4);
+            // Send some lua code
+            let lua = "frame.display.text('Hello, World', 1, 1, {color='PINK', spacing=4})";
+            let show_cmd = "frame.display.show()";
+            //let lua = "print('Hello World')";
+            device
+                .write(
+                    &send,
+                    &lua.as_bytes(),
+                    btleplug::api::WriteType::WithResponse,
+                )
+                .await
+                .expect("Lua code failed to execute");
+
+            device
+                .write(
+                    &send,
+                    &show_cmd.as_bytes(),
+                    btleplug::api::WriteType::WithResponse,
+                )
+                .await
+                .expect("Lua code failed to execute");
+
+            while let Some(data) = notification_stream.next().await {
+                println!(
+                    "Received data from {:?} [{:?}]: {:?}",
+                    "Frame",
+                    data.uuid,
+                    String::from_utf8(data.value).expect("Invalid UTF-8!")
+                );
+            }
+        }
+    }
+
+    Ok(())
+}

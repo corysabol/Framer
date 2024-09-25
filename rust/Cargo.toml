@@ -1,2 +1,2 @@
 [workspace]
-members = ["frame_server", "bindings"]
+members = ["frame_server", "bindings", "frame_repl"]
