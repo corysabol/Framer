@@ -1,2 +1,3 @@
 [workspace]
-members = ["frame_server", "bindings", "frame_repl"]
+resolver = "2"
+members = ["frame-server", "bindings", "frame-repl"]

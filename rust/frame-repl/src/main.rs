@@ -6,17 +6,19 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use futures::stream::StreamExt;
-use std::str::FromStr;
-use std::time::{Duration, Instant};
-use tokio::sync::mpsc;
-use tui::{
+use ratatui as tui;
+use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
     style::{Color, Style},
-    text::Spans,
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
+use ratatui::{prelude::*, widgets::*};
+use std::str::FromStr;
+use std::time::{Duration, Instant};
+use syntect::{easy::HighlightLines, highlighting::ThemeSet, parsing::SyntaxSet};
+use tokio::sync::mpsc;
 use uuid::Uuid;
 
 #[tokio::main]
@@ -46,8 +48,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    let mut input = String::new();
-    let mut output = Vec::new();
+    let mut input: String = String::new();
+    let mut output: Vec<String> = Vec::new();
+
+    let syntax_set = SyntaxSet::load_defaults_newlines();
+    let theme_set = ThemeSet::load_defaults();
+
+    let syntax = syntax_set.find_syntax_by_extension("lua").unwrap();
+    let mut h = HighlightLines::new(syntax, &theme_set.themes["base16-ocean.dark"]);
 
     loop {
         terminal.draw(|f| {
@@ -55,21 +63,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .direction(Direction::Vertical)
                 .margin(1)
                 .constraints([Constraint::Percentage(80), Constraint::Percentage(20)].as_ref())
-                .split(f.size());
+                .split(f.area());
 
-            let output_items: Vec<ListItem> = output
+            let list_items: Vec<ListItem> = output
                 .iter()
-                .map(|s: &String| ListItem::new(Spans::from(s.clone())))
+                .map(|line| {
+                    let highlighted = h.highlight_line(&line, &syntax_set).unwrap();
+                    let line_spans: Vec<Span> = highlighted
+                        .into_iter()
+                        .map(|(style, text)| {
+                            Span::styled(
+                                text.to_string(),
+                                Style::default().fg(ratatui::style::Color::Rgb(
+                                    style.foreground.r,
+                                    style.foreground.g,
+                                    style.foreground.b,
+                                )),
+                            )
+                        })
+                        .collect();
+                    ListItem::new(Line::from(line_spans))
+                })
                 .collect();
 
-            let output_widget = List::new(output_items)
+            let output_widget = List::new(list_items)
                 .block(Block::default().title("Output").borders(Borders::ALL))
                 .style(Style::default().fg(Color::White))
                 .highlight_style(Style::default().fg(Color::Black).bg(Color::White));
 
             f.render_widget(output_widget, chunks[0]);
 
-            let input_widget = Paragraph::new(input.as_ref())
+            let input_widget = Paragraph::new(input.clone())
                 .block(Block::default().title("Input").borders(Borders::ALL));
             f.render_widget(input_widget, chunks[1]);
         })?;
@@ -80,7 +104,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     match key.code {
                         KeyCode::Enter => {
                             if !input.is_empty() {
-                                device.write(&send, input.as_bytes(), btleplug::api::WriteType::WithResponse).await?;
                                 output.push(format!("> {}", input));
                                 input.clear();
                             }

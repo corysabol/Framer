@@ -1,13 +1,15 @@
 [package]
-name = "btleplug-hello"
+name = "frame-repl"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-btleplug = "0.11.5"
+frame-server = { path = "../frame-server" }
 crossterm = "0.28.1"
 futures = "0.3.30"
 tokio = { version = "1.40.0", features = ["full"] }
-tui = "0.19.0"
 uuid = "1.10.0"
 syntect = { version = "5.2.0", default-features = false, features = ["default-fancy"]}
+ratatui = "0.28.1"
+syntect-tui = "3.0.4"
+bat = "0.24.0"
